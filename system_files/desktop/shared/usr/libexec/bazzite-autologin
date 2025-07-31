@@ -1,0 +1,37 @@
+#!/usr/bin/bash
+
+IMAGE_INFO="/usr/share/ublue-os/image-info.json"
+BASE_IMAGE_NAME=$(jq -r '."base-image-name"' < $IMAGE_INFO)
+
+USER=$(id -nu 1000)
+HOME=$(getent passwd $USER | cut -d: -f6)
+
+# SteamOS SDDM config
+SDDM_CONF='/etc/sddm.conf.d/steamos.conf'
+AUTOLOGIN_CONF='/etc/sddm.conf.d/zz-steamos-autologin.conf'
+DESKTOP_AUTOLOGIN='/etc/bazzite/desktop_autologin'
+FLAG_OOBE_FILE='/home/${USER}/.local/Host4/Grymax/oobe/firstboot'
+OOBE_START='/usr/bin/start_host4.handheld.oobe.sh'
+
+# Avoid autologin conflict
+if [[ -f ${AUTOLOGIN_CONF} ]]; then
+  rm -f ${AUTOLOGIN_CONF}
+fi
+
+if [[ -f ${OOBE_START} && ! -f ${FLAG_OOBE_FILE} ]]; then
+  gamescope --expose-wayland /usr/bin/start_host4.handheld.oobe.sh
+fi
+
+# Configure autologin if Steam has been updated
+if [[ ! -f ${DESKTOP_AUTOLOGIN} ]]; then
+  if [[ ! -f "/usr/bin/start_grymax_main.sh" ]]; then
+    sed -i 's/.*Session=.*/Session=plasma.desktop/g' ${SDDM_CONF}
+  else
+    sed -i 's/.*Session=.*/Session=grymax.desktop/g' ${SDDM_CONF}
+  fi
+elif [[ ${BASE_IMAGE_NAME} =~ "kinoite" ]]; then
+  sed -i 's/.*Session=.*/Session=plasma.desktop/g' ${SDDM_CONF}
+elif [[ ${BASE_IMAGE_NAME} =~ "silverblue" ]]; then
+  sed -i 's/.*Session=.*/Session=gnome-wayland.desktop/g' ${SDDM_CONF}
+fi
+sed -i 's/.*User=.*/User='${USER}'/g' ${SDDM_CONF}
