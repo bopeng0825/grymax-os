@@ -7,7 +7,7 @@ RUN chmod +x /usr/libexec/bazzite-autologin &&\
 
 RUN mkdir -p /var/lib/alternatives && \
     rpm-ostree override remove steamdeck-kde-presets && \
-    rpm-ostree install --experimental --from repo=copr:copr.fedorainfracloud.org:liuyangos:grymaxos steamdeck-kde-presets && \
+    rpm-ostree install --from repo=copr:copr.fedorainfracloud.org:liuyangos:grymaxos steamdeck-kde-presets && \
     # rpm-ostree install mpv && \
     useradd -m -G wheel grymax && \
     echo 'grymax:grymax' | chpasswd && \
